@@ -5,14 +5,14 @@ Simple youtube uploader bot made with puppeteer & ❤
 
 ## Features
 Will include later or partially implemented
- [X] Login and saving session
- [X] Creating Playlist 
- [ ] Better Error Handling
- [ ] Code Refactoring or maybe event based approach
- [ ] Uploading and Saving Link to a file
- [ ] Continue where left off, if error occured
- [ ] Adding Video constraint like title, description, and playlist length limit; special characters 
- [ ] Writing test
+ - [X] Login and saving session
+ - [X] Creating Playlist 
+ - [ ] Better Error Handling
+ - [ ] Code Refactoring or maybe event based approach
+ - [ ] Uploading and Saving Link to a file
+ - [ ] Continue where left off, if error occured
+ - [ ] Adding Video constraint like title, description, and playlist length limit; special characters 
+ - [ ] Writing test
 
 ## Installation
 
