@@ -1,0 +1,22 @@
+{
+  "name": "projectM",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node-dev --watch -- ./src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "17.0.18",
+    "dotenv": "16.0.0",
+    "puppeteer": "13.3.2",
+    "puppeteer-extra": "3.2.3",
+    "puppeteer-extra-plugin-stealth": "2.9.0",
+    "ts-node-dev": "1.1.8",
+    "typescript": "4.5.5"
+  }
+}
