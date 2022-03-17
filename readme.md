@@ -1,5 +1,4 @@
 # Youtube Uploader Bot
-#### _The Last Markdown Editor, Ever_
 
 Simple youtube uploader bot made with puppeteer & ❤
 
