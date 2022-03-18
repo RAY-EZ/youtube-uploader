@@ -232,7 +232,7 @@ export class Uploader {
      /**
       * scheduling can be added here
       */
-    await this.page?.waitForTimeout(3000);
+    await this.page?.waitForTimeout(1000);
     await (await ytDialog!.$('#done-button'))?.click({delay: 100});
     return link || '' // Need error handling - wtf is that sushil
   }

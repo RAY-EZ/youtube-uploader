@@ -6,6 +6,8 @@ Simple youtube uploader bot made with puppeteer & ❤
 Will include later or partially implemented
  - [X] Login and saving session
  - [X] Creating Playlist 
+ - [X] Can add tags 
+ - [X] Publishes Video 
  - [ ] Better Error Handling
  - [ ] Code Refactoring or maybe event based approach
  - [ ] Uploading and Saving Link to a file

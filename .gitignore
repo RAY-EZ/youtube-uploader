@@ -2,3 +2,4 @@ node_modules
 videos
 session
 .env
+.DS_Store

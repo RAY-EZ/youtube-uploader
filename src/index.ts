@@ -5,9 +5,10 @@ import 'dotenv/config'
 const video = new Video({
   title: 'Sample Video',
   localPath: '/Users/ray-ez/Desktop/Node/projectM/videos/Screen Recording 2022-02-28 at 12.09.42 PM.mov',
-  madeForKid: false,
+  madeForKid: true,
   visibility: 'public',
-  playlist: 'meme2'
+  playlist: 'meme2',
+  tags: ['meme', 'meme2']
 })
 video.onProgress = (progress)=>{
   // console.log(progress);
