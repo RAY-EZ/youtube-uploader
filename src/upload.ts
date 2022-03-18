@@ -125,6 +125,10 @@ export class Uploader {
     console.log('called')
     const videoLinkSelector = 'a.style-scope.ytcp-video-info';
     const playlistDialogSelector = 'tp-yt-paper-dialog.style-scope.ytcp-playlist-dialog';
+    const doneButtonSelector = 'ytcp-button.done-button .label'
+    const tagsTextSelector = 'ytcp-chip-bar .chip-and-bar #text-input'
+    const nextButtonSelector = '#next-button';
+    const backButtonSelector = '#back-button';
 
     const link = await ytDialog?.$eval(videoLinkSelector, (el)=>el.innerHTML);
 
@@ -156,6 +160,7 @@ export class Uploader {
       await playListElement?.click();
       await this.page!.waitForTimeout(3000)
       const playlistDialog = await this.page!.$(playlistDialogSelector);
+      const doneButtonElement = await playlistDialog?.$(doneButtonSelector);
       // Look for existing playlist
       const playListItem = '[id^=checkbox-label-] > span'
       // const playListItem = '.style-scope.ytcp-checkbox-group.ytcp-checkbox-label.compact > span > span'
@@ -170,7 +175,7 @@ export class Uploader {
       let videoPlaylistElement = await playlistDialog!.$(`[id^=checkbox-label-${playlistIndex}] > span`);
 
       // create Playlist
-      if(!playlist){
+      if(!videoPlaylistElement){
         const newPlaylistButton = await playlistDialog!.$('.new-playlist-button.action-button.style-scope.ytcp-playlist-dialog');
         await newPlaylistButton?.click();
         await this.page!.waitForTimeout(500)
@@ -187,9 +192,48 @@ export class Uploader {
         videoPlaylistElement = await playlistDialog!.$(`[id^=checkbox-label-${playlistIndex}] > span`);
       }
       await videoPlaylistElement?.click();
+      await doneButtonElement?.click();
     }
     
+    // Setting made for Kids
+    const madeForKidSelector= 'VIDEO_MADE_FOR_KIDS_MFK';
+    const notMadeForKidSelector= 'VIDEO_MADE_FOR_KIDS_NOT_MFK';
+    if(video.madeForKid){
+      const radioButton = await ytDialog!.$(madeForKidSelector);
+      console.log(video.madeForKid, radioButton)
+      await radioButton?.click();
+    }
 
+    //show More
+    await (await ytDialog!.$('tp-yt-paper-dialog #toggle-button'))?.click();
+
+    // Adding Tags
+    if(video.tags && video.tags.length > 0){
+      const tags = video.tags.join(',');
+      const tagsTextArea = await ytDialog!.$(tagsTextSelector);
+      await tagsTextArea?.type(tags, { delay: 200});
+    }
+
+    await (await ytDialog!.$(nextButtonSelector))?.click({delay: 100});
+    /**
+     * more step can be added here
+     * Add cards, end screen, Subtitles etc..
+     */
+    await (await ytDialog!.$(nextButtonSelector))?.click({delay: 100});
+
+    // Checks Page
+    /**
+     * copyright related error can be handled here
+     */
+    await (await ytDialog!.$(nextButtonSelector))?.click({delay: 100})
+
+     const visibilityRadio =await ytDialog!.$(`#privacy-radios [name=${video.visibility.toUpperCase()}]`);
+     visibilityRadio?.click();
+     /**
+      * scheduling can be added here
+      */
+    await this.page?.waitForTimeout(3000);
+    await (await ytDialog!.$('#done-button'))?.click({delay: 100});
     return link || '' // Need error handling - wtf is that sushil
   }
 }

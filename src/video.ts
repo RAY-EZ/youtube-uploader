@@ -9,10 +9,11 @@ export interface videoMeta{
   playlist?: string;
   madeForKid: boolean; 
   visibility: 'private' | 'unlisted' | 'public';
+  tags?: string[]
   onProgress?:(progress: Progress)=>void;
 }
 
-export class Video {
+export class Video implements videoMeta{
   [key: string]: any;
   title: string;
   localPath: string;
@@ -22,6 +23,7 @@ export class Video {
   madeForKid: boolean; 
   visibility: videoMeta['visibility'];
   uploaded: boolean;
+  tags?: string[];
 
   onProgress?:(progress: Progress)=>void;
 
@@ -31,9 +33,10 @@ export class Video {
     this.description = data.description;
     this.thumbnail = data.thumbnail;
     this.playlist = data.playlist;
-    this.madeForKid = data.madeForKid;
+    this.madeForKid = data.madeForKid || false;
     this.visibility = data.visibility;
     this.uploaded = false;
+    this.tags = data.tags
     this.onProgress = data.onProgress?.bind(this);
   }
 
