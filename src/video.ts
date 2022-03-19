@@ -1,5 +1,5 @@
 import { Progress } from "./upload";
-
+import {assert} from "./Error/assert";
 export interface videoMeta{
   [key: string]: any;
   title: string;
@@ -11,22 +11,21 @@ export interface videoMeta{
   visibility: 'private' | 'unlisted' | 'public';
   tags?: string[]
   onProgress?:(progress: Progress)=>void;
+  onUploadSuccess?: (link: string)=>void;
 }
 
-export class Video implements videoMeta{
+export class Video{
   [key: string]: any;
-  title: string;
   localPath: string;
-  description?: string;
   thumbnail?: string;
   playlist?: string;
   madeForKid: boolean; 
   visibility: videoMeta['visibility'];
   uploaded: boolean;
-  tags?: string[];
 
   onProgress?:(progress: Progress)=>void;
-
+  onUploadSuccess?:(link: string)=>void;
+  onUploadStart?: ()=>void;
   constructor(data: videoMeta){
     this.title = data.title;
     this.localPath = data.localPath;
@@ -38,27 +37,40 @@ export class Video implements videoMeta{
     this.uploaded = false;
     this.tags = data.tags
     this.onProgress = data.onProgress?.bind(this);
+    this.onUploadSuccess = data.onUploadSuccess?.bind(this);
+    this.onUploadStart = data.onUploadStart?.bind(this);
   }
-
+  set title(data: string){
+    assert(data.length == 0 || data.length > 100, 'Title length must be between 0 to 100');
+    this._title = data;
+  }
+  get title(){
+    return this._title
+  }
+  set description(data: string | undefined){
+    if(data)
+      assert(data.length > 5000, 'description length cannot exceed 5000');
+    this._description = data;
+  }
+  get description(){
+    return this._description
+  }
+  set tags(data: string[] | undefined){
+    if(data) {
+      assert(data.join(',').length > 500, 'tags length cannot exceed 500');
+    }
+    this._tags = data;
+  }
+  get tags(){
+    return this._tags
+  }
   set uploadedLink(link: string){
     this._link = link;
+    this.uploaded = true;
   }
   get uploadedLink(){
-    return this._link && undefined;
+    return this._link;
   }
-  onUploadStart(fn: Function){
-    console.log(this);
-    
-    fn.call(this,this);
-  }
-  // onProgress (fn: Function){
-  //   const video = this;
-  //   let progress: number | string=0;
-  //   fn.call(this,video, progress);
-  // }
 
-  onUploadSuccess(fn: Function){
-    fn.call(this,this);
-  }
 }
 
