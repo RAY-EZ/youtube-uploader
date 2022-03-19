@@ -1,8 +1,9 @@
 import puppeteer, { Puppeteer } from 'puppeteer';
 import { Browser, Page } from 'puppeteer/lib/types'
-import { Account, credential } from './login';
+import { Account, credential } from './account';
 import { Video } from './video';
 import { UploadError } from './Error/uploadError';
+import { resolve } from 'path/posix';
 
 export interface Progress{
   stage: number;
@@ -34,16 +35,20 @@ export class Uploader {
       this.browser= browser;
       this.page = page;
     }
+    
     this.tolerence = options.tolerence;
     this.skipProcessingAndChecks = options.skipProcessingAndChecks || true;
 
     for(let video of videos){
+      video.onUploadStart?.();
       await this._uploadVideo(video);
     }
+    console.log('DONE 😃 🚀')
+    await this.browser?.close();
   }
 
   async _uploadVideo(video: Video){
-    await this.page!.goto('http://studio.youtube.com');
+    await this.page!.goto('https://studio.youtube.com');
     await this.page?.click('#create-icon');
     await this.page!.click('tp-yt-paper-item#text-item-0');
     const [fileChooser] = await Promise.all([
@@ -67,30 +72,30 @@ export class Uploader {
         console.log('tolerence reached youtube upload stuck at something');
         return;
       }
-      // console.log(ms);
+
       let error = await youtubeUploadDialog!.$eval(errorLabel, (el)=>el.innerHTML);
       let progress = await youtubeUploadDialog!.$eval(progressLabel,(el)=>el.innerHTML );
 
-      if(error.toLocaleLowerCase()== 'daily upload limit reached') throw new UploadError('daily upload limit reached')
+      // if(error.toLocaleLowerCase()== 'daily upload limit reached') throw new UploadError('daily upload limit reached')
+      if(error.toLocaleLowerCase()== 'daily upload limit reached') return;
       let [state,...parameters] = progress.toLocaleLowerCase().split(' ');
       
       // stage 1 - Uploading or Upload Complete
-      console.log(state,parameters)
+      // console.log(state,parameters)
       if(state.startsWith('upload')){
         let currentPercent;
         if(parameters[0] == 'complete' || parameters[0] == '100%'){
           stage = 1;
           const uploadedLink = await _this.finalizeUpload(youtubeUploadDialog, video);
-          console.log(uploadedLink);
-         
           video.uploadedLink = uploadedLink;
-          if(_this.skipProcessingAndChecks) return ;
+          video.onUploadSuccess?.(uploadedLink);
+          if(_this.skipProcessingAndChecks) return uploadedLink;
         }
         
         currentPercent = +parameters[0].slice(0,-1);
         if(currentPercent == percentage) ms +=timeoutms;  // raising timeout if yt stucks
         
-        video.onProgress!({stage, stageName: 'uploading', percentage: +parameters[0].slice(0,-1)})
+        video.onProgress?.({stage, stageName: 'uploading', percentage: +parameters[0].slice(0,-1)})
       }
 
       if(!_this.skipProcessingAndChecks){
@@ -104,12 +109,11 @@ export class Uploader {
         }
       }
 
-      // if(stage == 1){
-      //   console.log('waiting for xpath')
-      //   let link = await _this.page?.waitForXPath('//*[@id="details"]/ytcp-video-metadata-editor-sidepanel/ytcp-video-info/div/div[1]/div[1]/div[2]/span/a');
-      //   console.log(link);
-      // }
-      setTimeout(loop.bind(_this,ms),ms);
+      await new Promise(resolve => setTimeout(async ()=>{
+        await loop(ms);
+        resolve(null);
+      },ms))
+      // setTimeout(loop.bind(_this,ms),ms);
     }
     await loop(timeoutms);
     // Stage 1 - Uploading
@@ -122,7 +126,6 @@ export class Uploader {
    * @returns 
    */
   async finalizeUpload( ytDialog: puppeteer.ElementHandle|null, video: Video ):Promise<string>{
-    console.log('called')
     const videoLinkSelector = 'a.style-scope.ytcp-video-info';
     const playlistDialogSelector = 'tp-yt-paper-dialog.style-scope.ytcp-playlist-dialog';
     const doneButtonSelector = 'ytcp-button.done-button .label'
@@ -156,7 +159,7 @@ export class Uploader {
       const videoPlaylist = video.playlist
       const playListSelector = '.use-placeholder.style-scope.ytcp-text-dropdown-trigger';
       const playListElement = await ytDialog!.$(playListSelector);
-      // console.log(playListElement)
+
       await playListElement?.click();
       await this.page!.waitForTimeout(3000)
       const playlistDialog = await this.page!.$(playlistDialogSelector);
@@ -198,11 +201,10 @@ export class Uploader {
     // Setting made for Kids
     const madeForKidSelector= 'VIDEO_MADE_FOR_KIDS_MFK';
     const notMadeForKidSelector= 'VIDEO_MADE_FOR_KIDS_NOT_MFK';
-    if(video.madeForKid){
-      const radioButton = await ytDialog!.$(madeForKidSelector);
-      console.log(video.madeForKid, radioButton)
-      await radioButton?.click();
-    }
+
+    const radioButton = await ytDialog!.$(`[name=${video.madeForKid ? madeForKidSelector: notMadeForKidSelector}]`);
+    await radioButton?.click();
+    
 
     //show More
     await (await ytDialog!.$('tp-yt-paper-dialog #toggle-button'))?.click();
@@ -234,7 +236,7 @@ export class Uploader {
       */
     await this.page?.waitForTimeout(1000);
     await (await ytDialog!.$('#done-button'))?.click({delay: 100});
-    return link || '' // Need error handling - wtf is that sushil
+    return link || '';
   }
 }
 

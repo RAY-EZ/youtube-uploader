@@ -10,9 +10,16 @@ const video = new Video({
   playlist: 'meme2',
   tags: ['meme', 'meme2']
 })
-video.onProgress = (progress)=>{
-  // console.log(progress);
+video.onProgress = function(progress){
+  console.log(progress);
 }
+video.onUploadStart = function(){
+  console.log(`uploading - ${this.title}`)
+}
+video.onUploadSuccess = function(link){
+  console.log(`video upload at ${link}`)
+}
+
 if(!process.env.EMAIL || !process.env.PASSWORD) throw new Error('Email and Password required');
 
 const uploader = new Uploader({email: process.env.EMAIL , password: process.env.PASSWORD});

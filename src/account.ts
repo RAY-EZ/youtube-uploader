@@ -43,13 +43,16 @@ export class Account {
        
       await page.type(emailInputSelector, this.email, { delay: 200 })
       await page.waitForTimeout(3000)
-      await page.keyboard.press('Enter')
+      await page.keyboard.press('Enter');
 
       const passwordInputSelector = 'input[type="password"]:not([aria-hidden="true"])'
       await page.waitForSelector(passwordInputSelector)
+      //
       await page.waitForTimeout(3000)
       await page.type(passwordInputSelector, this.password, { delay: 200 })
       await page.keyboard.press('Enter');
+      // if google ask to click 'yes it's me'
+      await page.waitForTimeout(4000);
       await page.waitForNavigation()
 
       await fsPromise.mkdir('./session', { recursive: true})
@@ -57,7 +60,7 @@ export class Account {
       const cookie = await page.cookies();
       await fsPromise.writeFile(`./session/${this.email}_session.json`, JSON.stringify(cookie), { flag: 'w'})
       await page.setCookie(...cookie as Protocol.Network.CookieParam[])
-      console.log(cookie);
+      console.log('session saved')
 
       return await this.login(headless);
     }
@@ -65,6 +68,7 @@ export class Account {
     await page.goto('https://www.google.com/');
     // Setting stored Cookies
     await page.setCookie(...session);
+    console.log('Logged In!')
     // await page.goto('https://www.youtube.com/');
     // await page.close();
     /**
