@@ -32,21 +32,27 @@ Installing dependencies and running in development
 
 ```sh
 npm install
-npm run dev
+npm run dev --videos-dir=/absolute/path/to/the/video/containing/folder
 ```
 
-trust me last step 
-edit `index.js` file in `src` directory
-```js
-const video = new Video({
-  title: 'Sample Video',
-  localPath: '/Users/ray-ez/Desktop/Node/projectM/videos/Screen Recording 2022-02-28 at 12.09.42 PM.mov',
-  madeForKid: false,
-  visibility: 'public',
-  playlist: 'meme2'
+edit `index.ts` file in `src` directory
+```ts
+  let video = new Video({
+    title: d.name.length <= 100? d.name: d.name.slice(0,100) ,
+    localPath: entry,
+    madeForKid: false,
+    visibility: 'public',
+    playlist: 'your playlist',
+    tags: ['your tag']
 })
 ```
-create instances of video or just edit the `localPath`
+`d` and `entry` here passed by generator function that is looping through your directory. `d` hold the refernce to current file and `entry` path to the file.
+
+you can add your logic here for adding dynamic playlist name 
+I've kept my videos in nested folder so that my folder's name is video playlist(😎)
 
 # Note
-Still under development. This bot still not publishes the video, youtube defaults saves the video as private unless published.
+It can upload bunch of video at once.
+If you find any sort of error while running feel free report a new issue
+
+![should output link](/sample.png)
