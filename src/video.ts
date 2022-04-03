@@ -74,3 +74,4 @@ export class Video{
 
 }
 
+export {}

@@ -3,3 +3,5 @@ videos
 session
 .env
 .DS_Store
+dist
+logs
