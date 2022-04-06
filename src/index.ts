@@ -4,13 +4,16 @@ import path from 'path';
 import fs from 'fs/promises'
 import 'dotenv/config'
 import FileType from 'file-type';
-import { Dirent } from 'fs';
+import fsSync, { Dirent } from 'fs';
 
 
 const videosDir = process.env?.npm_config_videos_dir || '';
+const LogDir = path.join(__dirname, 'logs');
+const UploadVideoLog = path.join(LogDir, 'videoList.json');
 
 const videosPath = []
-const videosList:any[] = [];
+const NotUploaded:Video[] = [];
+const VideoList: Video[] = [];
 
 const onProgress = function(progress: any){
   console.log(progress);
@@ -39,39 +42,73 @@ async function* walk(dir: string): AsyncGenerator<{d:Dirent; entry:string}>{
 (async ()=>{
   try{
     let count = 0;
-    await fs.mkdir(path.join(__dirname, 'logs'), { recursive: true});
+    await fs.mkdir(LogDir, { recursive: true});
 
-    for await (const {d, entry} of walk(videosDir)){
-      let type  = await FileType.fromFile(path.resolve(entry))
+    try {
+      const videoListJson = await fs.readFile(UploadVideoLog, { encoding: 'utf-8'});
+      let videos = JSON.parse(videoListJson);
+      // attaching callbacks
+      videos.forEach((vid: Video, index: number) => {
+        // some bad ways of writing js 😂 🙈
+        videos[index] = new Video(vid);
+        vid= videos[index];
+        // now vid instanceof Video
+        vid.tags = vid.tags?.filter((tag)=> tag.length < 30)
+        vid.uploadedLink = vid.uploadedLink?.trim()
+        vid.onProgress = onProgress;
+        vid.onUploadStart = onUploadStart;
+        vid.onUploadSuccess = onUploadSuccess;
+      });
+      // All Video List
+      VideoList.push(...videos);
+      // not uploaded Video
+      videos = VideoList.filter((vid: Video)=> !vid.uploaded);
+      NotUploaded.push(...videos);
 
-      if(type?.mime.search(/video/) === 0){
-        count++;
-        let video = new Video({
-          title: d.name.length <= 100? d.name: d.name.slice(0,100) ,
-          localPath: entry,
-          madeForKid: false,
-          visibility: 'public',
-          playlist: 'your playlist',
-          tags: ['your tag']
-        })
-        video.onProgress = onProgress;
-        video.onUploadStart = onUploadStart;
-        video.onUploadSuccess = onUploadSuccess;
-        videosList.push(video)
+      console.table([{ 'Videos To Upload': VideoList.length, 
+                      'Videos Uploaded': VideoList.length - NotUploaded.length,
+                      'Videos Not Uploaded': NotUploaded.length 
+                    }]);
+      // console.log(VideoList.filter((vid: Video)=> vid.uploaded))
+      
+    } catch(e){
+
+      for await (const {d, entry} of walk(videosDir)){
+        let type  = await FileType.fromFile(path.resolve(entry))
+
+        if(type?.mime.search(/video/) === 0){
+          count++;
+          let video = new Video({
+            title: d.name.length <= 100? d.name: d.name.slice(0,100) ,
+            localPath: entry,
+            madeForKid: false,
+            visibility: 'unlisted',
+            playlist: 'your-playlist',
+            tags: ['your', 'tags']
+          })
+          video.onProgress = onProgress;
+          video.onUploadStart = onUploadStart;
+          video.onUploadSuccess = onUploadSuccess;
+          NotUploaded.push(video)
+        }
       }
+      /** Now videoList hold the `reference` to the Videos */
+      VideoList.push(...NotUploaded);
+      console.log(JSON.stringify(NotUploaded, null, 2))
     }
+
     
     if(!process.env.EMAIL || !process.env.PASSWORD) throw new Error('Email and Password required');
+    // await fs.writeFile(path.join(__dirname, 'logs/videoList.json'), JSON.stringify(NotUploaded));
 
     const uploader = new Uploader({email: process.env.EMAIL , password: process.env.PASSWORD});
-    uploader.upload(videosList,{headless: false, tolerence: 20000, skipProcessingAndChecks: true});
+    uploader.upload(NotUploaded,{headless: false, tolerence: 20000, skipProcessingAndChecks: true});
 
   } catch(e){
     console.log('called catch')
-    await fs.writeFile(path.join(__dirname, 'logs/videoList.json'), JSON.stringify(videosList));
     console.error(e);
   }
-  // console.log(videosList)
+  // console.log(NotUploaded)
 })()
 
 process.on('unhandledRejection', (reason)=>{
@@ -82,10 +119,11 @@ process.on('SIGTERM',()=>{
 
 })
 process.on('SIGINT', async ()=>{
-  console.log('saved list to logs')
-  console.log(videosList.length)
-  await fs.writeFile(path.join(__dirname, 'logs/videoList.json'), 'something is written', {
+  console.log('saved videos list to logs');
+  console.log(VideoList.length)
+  fsSync.writeFileSync(UploadVideoLog, JSON.stringify(VideoList), {
     flag: 'w'
-  });
+  })
+  
   process.exit();
 })
