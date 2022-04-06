@@ -9,7 +9,9 @@ export interface videoMeta{
   playlist?: string;
   madeForKid: boolean; 
   visibility: 'private' | 'unlisted' | 'public';
-  tags?: string[]
+  tags?: string[];
+  uploaded?: boolean;
+  uploadedLink?: string;
   onProgress?:(progress: Progress)=>void;
   onUploadSuccess?: (link: string)=>void;
 }
@@ -34,8 +36,9 @@ export class Video{
     this.playlist = data.playlist;
     this.madeForKid = data.madeForKid || false;
     this.visibility = data.visibility;
-    this.uploaded = false;
-    this.tags = data.tags
+    this.uploaded = data.uploadedLink ? true : false;
+    this.tags = data.tags;
+    this.uploadedLink = data.uploadedLink || '';
     this.onProgress = data.onProgress?.bind(this);
     this.onUploadSuccess = data.onUploadSuccess?.bind(this);
     this.onUploadStart = data.onUploadStart?.bind(this);
@@ -65,13 +68,27 @@ export class Video{
     return this._tags
   }
   set uploadedLink(link: string){
-    this._link = link;
-    this.uploaded = true;
+    if(link){
+      this._link = link;
+      this.uploaded = true;
+    }
   }
   get uploadedLink(){
     return this._link;
   }
-
+  toJSON(){
+    let retObj = Object.assign({}, this);
+    retObj.title = this._title;
+    delete retObj._title;
+    retObj.tags = this._tags;
+    delete retObj._tags;
+    retObj.uploadedLink = this._link;
+    delete retObj._link;
+    return retObj;
+  }
+  [Symbol.name](){
+    return 'Video'
+  }
 }
 
 export {}
