@@ -101,7 +101,7 @@ export class Uploader {
           if(parameters[0] == 'complete' || parameters[0] == '100%'){
             stage = 1;
             const uploadedLink = await _this.finalizeUpload(youtubeUploadDialog, video);
-            video.uploadedLink = uploadedLink;
+            video.uploadedLink = uploadedLink.trim();
             video.onUploadSuccess?.(uploadedLink);
             if(_this.skipProcessingAndChecks) return uploadedLink;
           }
@@ -175,7 +175,7 @@ export class Uploader {
       const playListElement = await ytDialog!.$(playListSelector);
 
       await playListElement?.click();
-      await this.page!.waitForTimeout(3000)
+      await this.page!.waitForTimeout(5000)
       const playlistDialog = await this.page!.$(playlistDialogSelector);
       const doneButtonElement = await playlistDialog?.$(doneButtonSelector);
       // Look for existing playlist
@@ -183,10 +183,11 @@ export class Uploader {
       // const playListItem = '.style-scope.ytcp-checkbox-group.ytcp-checkbox-label.compact > span > span'
       let playlist: puppeteer.ElementHandle | null | undefined;
       let playlistNames: string[] | undefined
-
+      
       playlistNames = await playlistDialog?.$$eval( playListItem , (nodes)=>{
         return nodes.map((el)=>el.innerHTML)
       })
+      ;
       let playlistIndex = playlistNames?.indexOf(videoPlaylist)
       
       let videoPlaylistElement = await playlistDialog!.$(`[id^=checkbox-label-${playlistIndex}] > span`);
@@ -200,7 +201,7 @@ export class Uploader {
         await titleTextArea?.type(videoPlaylist, { delay: 100});
         (await playlistDialog!.$('ytcp-button.create-playlist-button'))?.click();
 
-        await this.page?.waitForTimeout(1000);
+        await this.page?.waitForTimeout(4000);
 
         playlistNames = await playlistDialog?.$$eval( playListItem , (nodes)=>{
           return nodes.map((el)=>el.innerHTML)
@@ -250,6 +251,7 @@ export class Uploader {
       */
     await this.page?.waitForTimeout(1000);
     await (await ytDialog!.$('#done-button'))?.click({delay: 100});
+    await this.page?.waitForTimeout(3000);
     return link || '';
   }
 }
