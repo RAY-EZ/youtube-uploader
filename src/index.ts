@@ -103,7 +103,7 @@ async function* walk(dir: string): AsyncGenerator<{d:Dirent; entry:string}>{
     if(!process.env.EMAIL || !process.env.PASSWORD) throw new Error('Email and Password required');
     
     const uploader = new Uploader({email: process.env.EMAIL , password: process.env.PASSWORD});
-    await uploader.upload(NotUploaded,{headless: false, tolerence: 20000, skipProcessingAndChecks: true});
+    await uploader.upload(NotUploaded,{headless: true, tolerence: 20000, skipProcessingAndChecks: true});
     await fs.writeFile(UploadVideoLog, JSON.stringify(VideoList));
 
   } catch(e){

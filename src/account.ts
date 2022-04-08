@@ -28,6 +28,10 @@ export class Account {
       headless
     });
     const page = await browser.newPage();
+    await page.setViewport({
+      width: 1280,
+      height: 720
+    })
     let session;
     try{
       session = await fsPromise.readFile(`./session/${this.email}_session.json`,{
