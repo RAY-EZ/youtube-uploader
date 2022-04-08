@@ -147,6 +147,7 @@ export class Uploader {
     const nextButtonSelector = '#next-button';
     const backButtonSelector = '#back-button';
 
+    await this.page?.waitForTimeout(3000);
     const link = await ytDialog?.$eval(videoLinkSelector, (el)=>el.innerHTML);
 
     const textElementSelector = '#textbox'
@@ -251,8 +252,7 @@ export class Uploader {
       */
     await this.page?.waitForTimeout(1000);
     await (await ytDialog!.$('#done-button'))?.click({delay: 100});
-    await this.page?.waitForTimeout(3000);
+    await this.page?.waitForTimeout(5000);
     return link || '';
   }
 }
-

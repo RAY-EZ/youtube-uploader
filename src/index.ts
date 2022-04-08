@@ -83,6 +83,8 @@ async function* walk(dir: string): AsyncGenerator<{d:Dirent; entry:string}>{
             localPath: entry,
             madeForKid: false,
             visibility: 'unlisted',
+            // playlist: entry.split('/')[5],
+            // tags: entry.split('/').slice(4).filter((tag)=> tag.length < 30)
             playlist: 'your-playlist',
             tags: ['your', 'tags']
           })
@@ -99,10 +101,10 @@ async function* walk(dir: string): AsyncGenerator<{d:Dirent; entry:string}>{
 
     
     if(!process.env.EMAIL || !process.env.PASSWORD) throw new Error('Email and Password required');
-    // await fs.writeFile(path.join(__dirname, 'logs/videoList.json'), JSON.stringify(NotUploaded));
-
+    
     const uploader = new Uploader({email: process.env.EMAIL , password: process.env.PASSWORD});
-    uploader.upload(NotUploaded,{headless: false, tolerence: 20000, skipProcessingAndChecks: true});
+    await uploader.upload(NotUploaded,{headless: false, tolerence: 20000, skipProcessingAndChecks: true});
+    await fs.writeFile(UploadVideoLog, JSON.stringify(VideoList));
 
   } catch(e){
     console.log('called catch')

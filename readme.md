@@ -1,16 +1,22 @@
 # Youtube Uploader Bot
 
-Simple youtube uploader bot made with puppeteer & ❤
+Simple youtube uploader bot made with puppeteer 
+
+## Motivation
+
+Tried Using [fawazahmed0/youtube-uploader](https://github.com/fawazahmed0/youtube-uploader.git) package,
+the package wasn't fexible enough to fulfill my need, and there is issue with youtube upload stuck at Processing 95%(classic problem).
 
 ## Features
 Will include later or partially implemented
+ - [X] Solved Processing Problem
  - [X] Login and saving session
  - [X] Creating Playlist 
  - [X] Can add tags 
  - [X] Publishes Video 
  - [ ] Better Error Handling
  - [ ] Code Refactoring or maybe event based approach
- - [ ] Uploading and Saving Link to a file
+ - [X] Uploading and Saving Link to a file
  - [ ] Continue where left off, if error occured
  - [ ] Adding Video constraint like title, description, and playlist length limit; special characters 
  - [ ] Writing test
